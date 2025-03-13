@@ -159,7 +159,7 @@ Once FIPDetails are available, discovery can be made with the following step -
 
 ```
 final discoveredAccounts = await _finvuManager.discoverAccounts(
-        fipDetails,
+        fipId,
         fiTypes
         typeIdentifiers,
       );
