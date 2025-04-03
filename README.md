@@ -206,6 +206,44 @@ final discoveredAccounts = await finvuManager.discoverAccounts(
     ]
 );
 ```
+
+2. **Discover Accounts Async**
+```dart
+Future<List<FinvuDiscoveredAccountInfo>> discoverAccountsAsync(
+    String fipId,
+    List<String> fiTypes,
+    List<FinvuTypeIdentifierInfo> identifiers,
+  ) 
+```
+Discovers user accounts with specified FIP using given identifiers.
+```dart
+final discoveredAccounts = await finvuManager.discoverAccountsAsync(
+    fipId,
+    ["DEPOSIT", "RECURRING_DEPOSIT"],
+    [
+        FinvuTypeIdentifierInfo(
+            category: "STRONG",
+            type: "MOBILE",
+            value: "9309107496"
+        )
+    ]
+);
+```
+
+##### Difference Between `discoverAccounts` and `discoverAccountsAsync`
+
+1. `discoverAccounts`
+   - **Behavior**: Executes a synchronous request to discover accounts. The backend processes the request and returns the results immediately.  
+   - **Use Case**: Use this method when you need real-time results and the account discovery process is expected to complete quickly.
+
+2. `discoverAccountsAsync`
+   - **Behavior**: Executes an asynchronous request to discover accounts. The backend processes the request in the background, and the results may take longer to return.  
+   - **Use Case**: Use this method when the account discovery process might take more time, or when you can afford to wait for the results without blocking the user interface.
+
+### Summary
+- Use `discoverAccounts` for immediate results in scenarios where quick responses are critical.  
+- Use `discoverAccountsAsync` for background processing when the discovery process is expected to take longer or can be deferred.
+
 **The FiTypes required by the specific FIP is returned in the fipsAllFIPOptions API and the identifiers required for discovery of a certain  FIP is returned in the fetchFIPDetails API.**
 
 **Note: Commonly User FiTypes are:**
@@ -214,27 +252,43 @@ DEPOSIT, TERM_DEPOSIT, TERM-DEPOSIT, RECURRING_DEPOSIT, INSURANCE_POLICIES, LIFE
 **Note: Examples of Identifiers for specific FiTypes**
 1. Banks require Mobile Number as a strong type
 ```dart
-FinvuTypeIdentifierInfo(
+[
+        FinvuTypeIdentifierInfo(
             category: "STRONG",
             type: "MOBILE",
             value: "930910XXXX"
         )
+]
 ```
 2. Investments require same as bank the mobile as first identifier and additional weak PAN as a second identifier
 ```dart
-FinvuTypeIdentifierInfo(
+[
+        FinvuTypeIdentifierInfo(
+            category: "STRONG",
+            type: "MOBILE",
+            value: "930910XXXX"
+        ),
+        FinvuTypeIdentifierInfo(
             category: "WEAK",
             type: "PAN",
             value: "DFKPGXXXXR"
         )
+]
 ```
 3. Insurance require same as bank the mobile as first identifier and additional needs DOB as a second identifier
 ```dart
-FinvuTypeIdentifierInfo(
+[
+        FinvuTypeIdentifierInfo(
+            category: "STRONG",
+            type: "MOBILE",
+            value: "930910XXXX"
+        ),
+        FinvuTypeIdentifierInfo(
             category: "ANCILLARY",
             type: "DOB",
             value: "yyyy-MM-dd"
         )
+]
 ```
 
 2. **Link Accounts**
