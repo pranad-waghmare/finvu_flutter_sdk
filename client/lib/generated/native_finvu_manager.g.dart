@@ -15,20 +15,50 @@ PlatformException _createConnectionError(String channelName) {
   );
 }
 
+enum FinvuEnvironment {
+  development,
+  production,
+}
+
+class NativeFinvuSnaAuthConfig {
+  NativeFinvuSnaAuthConfig({
+    required this.environment,
+  });
+
+  FinvuEnvironment environment;
+
+  Object encode() {
+    return <Object?>[
+      environment.index,
+    ];
+  }
+
+  static NativeFinvuSnaAuthConfig decode(Object result) {
+    result as List<Object?>;
+    return NativeFinvuSnaAuthConfig(
+      environment: FinvuEnvironment.values[result[0]! as int],
+    );
+  }
+}
+
 class NativeFinvuConfig {
   NativeFinvuConfig({
     required this.finvuEndpoint,
     this.certificatePins,
+    this.finvuSnaAuthConfig,
   });
 
   String finvuEndpoint;
 
   List<String?>? certificatePins;
 
+  NativeFinvuSnaAuthConfig? finvuSnaAuthConfig;
+
   Object encode() {
     return <Object?>[
       finvuEndpoint,
       certificatePins,
+      finvuSnaAuthConfig?.encode(),
     ];
   }
 
@@ -37,6 +67,9 @@ class NativeFinvuConfig {
     return NativeFinvuConfig(
       finvuEndpoint: result[0]! as String,
       certificatePins: (result[1] as List<Object?>?)?.cast<String?>(),
+      finvuSnaAuthConfig: result[2] != null
+          ? NativeFinvuSnaAuthConfig.decode(result[2]! as List<Object?>)
+          : null,
     );
   }
 }
@@ -701,13 +734,21 @@ class NativeFIPReference {
 class NativeLoginOtpReference {
   NativeLoginOtpReference({
     required this.reference,
+    this.snaToken,
+    required this.authType,
   });
 
   String reference;
 
+  String? snaToken;
+
+  String authType;
+
   Object encode() {
     return <Object?>[
       reference,
+      snaToken,
+      authType,
     ];
   }
 
@@ -715,6 +756,8 @@ class NativeLoginOtpReference {
     result as List<Object?>;
     return NativeLoginOtpReference(
       reference: result[0]! as String,
+      snaToken: result[1] as String?,
+      authType: result[2]! as String,
     );
   }
 }
@@ -917,29 +960,32 @@ class _NativeFinvuManagerCodec extends StandardMessageCodec {
     } else if (value is NativeFinvuConfig) {
       buffer.putUint8(147);
       writeValue(buffer, value.encode());
-    } else if (value is NativeHandleInfo) {
+    } else if (value is NativeFinvuSnaAuthConfig) {
       buffer.putUint8(148);
       writeValue(buffer, value.encode());
-    } else if (value is NativeLinkedAccountDetailsInfo) {
+    } else if (value is NativeHandleInfo) {
       buffer.putUint8(149);
       writeValue(buffer, value.encode());
-    } else if (value is NativeLinkedAccountInfo) {
+    } else if (value is NativeLinkedAccountDetailsInfo) {
       buffer.putUint8(150);
       writeValue(buffer, value.encode());
-    } else if (value is NativeLinkedAccountsResponse) {
+    } else if (value is NativeLinkedAccountInfo) {
       buffer.putUint8(151);
       writeValue(buffer, value.encode());
-    } else if (value is NativeLoginOtpReference) {
+    } else if (value is NativeLinkedAccountsResponse) {
       buffer.putUint8(152);
       writeValue(buffer, value.encode());
-    } else if (value is NativeProcessConsentRequestResponse) {
+    } else if (value is NativeLoginOtpReference) {
       buffer.putUint8(153);
       writeValue(buffer, value.encode());
-    } else if (value is NativeTypeIdentifier) {
+    } else if (value is NativeProcessConsentRequestResponse) {
       buffer.putUint8(154);
       writeValue(buffer, value.encode());
-    } else if (value is NativeTypeIdentifierInfo) {
+    } else if (value is NativeTypeIdentifier) {
       buffer.putUint8(155);
+      writeValue(buffer, value.encode());
+    } else if (value is NativeTypeIdentifierInfo) {
+      buffer.putUint8(156);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -990,20 +1036,22 @@ class _NativeFinvuManagerCodec extends StandardMessageCodec {
       case 147: 
         return NativeFinvuConfig.decode(readValue(buffer)!);
       case 148: 
-        return NativeHandleInfo.decode(readValue(buffer)!);
+        return NativeFinvuSnaAuthConfig.decode(readValue(buffer)!);
       case 149: 
-        return NativeLinkedAccountDetailsInfo.decode(readValue(buffer)!);
+        return NativeHandleInfo.decode(readValue(buffer)!);
       case 150: 
-        return NativeLinkedAccountInfo.decode(readValue(buffer)!);
+        return NativeLinkedAccountDetailsInfo.decode(readValue(buffer)!);
       case 151: 
-        return NativeLinkedAccountsResponse.decode(readValue(buffer)!);
+        return NativeLinkedAccountInfo.decode(readValue(buffer)!);
       case 152: 
-        return NativeLoginOtpReference.decode(readValue(buffer)!);
+        return NativeLinkedAccountsResponse.decode(readValue(buffer)!);
       case 153: 
-        return NativeProcessConsentRequestResponse.decode(readValue(buffer)!);
+        return NativeLoginOtpReference.decode(readValue(buffer)!);
       case 154: 
-        return NativeTypeIdentifier.decode(readValue(buffer)!);
+        return NativeProcessConsentRequestResponse.decode(readValue(buffer)!);
       case 155: 
+        return NativeTypeIdentifier.decode(readValue(buffer)!);
+      case 156: 
         return NativeTypeIdentifierInfo.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);

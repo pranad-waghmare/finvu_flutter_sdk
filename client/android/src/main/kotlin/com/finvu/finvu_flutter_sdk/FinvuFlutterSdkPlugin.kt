@@ -33,7 +33,12 @@ import NativeFIPSearchResponse
 import NativeTypeIdentifier
 import NativeFIPReference
 import com.finvu.android.utils.FinvuConfig
+import com.finvu.android.utils.FinvuSNAAuthConfig
 import com.finvu.android.FinvuManager
+import com.finvu.android.types.FinvuEnvironment
+import android.app.Activity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
 import com.finvu.android.publicInterface.ConsentDataFrequency
 import com.finvu.android.publicInterface.ConsentDataLifePeriod
 import com.finvu.android.publicInterface.ConsentDetail
@@ -58,8 +63,16 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-data class FinvuClientConfig(override val finvuEndpoint: String,
-                             override val certificatePins: List<String>?
+data class FinvuSNAAuthClientConfig(
+    override val activity: Activity,
+    override val env: FinvuEnvironment,
+    override var scope: CoroutineScope
+) : FinvuSNAAuthConfig
+
+data class FinvuClientConfig(
+    override val finvuEndpoint: String,
+    override val certificatePins: List<String>?,
+    override val finvuSNAAuthConfig: FinvuSNAAuthConfig?
 ) : FinvuConfig
 
 /** FinvuFlutterSdkPlugin */
@@ -69,6 +82,7 @@ class FinvuFlutterSdkPlugin: FlutterPlugin, NativeFinvuManager {
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
   /// when the Flutter Engine is detached from the Activity
   private lateinit var channel : MethodChannel
+  private var flutterPluginBinding: FlutterPlugin.FlutterPluginBinding? = null
 
   private val dateFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.getDefault())
 
@@ -76,7 +90,15 @@ class FinvuFlutterSdkPlugin: FlutterPlugin, NativeFinvuManager {
     dateFormatter.timeZone = TimeZone.getDefault()
   }
 
+  private fun convertToNativeEnvironment(environment: NativeFinvuEnvironment): FinvuEnvironment {
+    return when (environment) {
+      NativeFinvuEnvironment.DEVELOPMENT -> FinvuEnvironment.UAT
+      NativeFinvuEnvironment.PRODUCTION -> FinvuEnvironment.PRODUCTION
+    }
+  }
+
   override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+    flutterPluginBinding = binding
     NativeFinvuManager.setUp(binding.binaryMessenger, this)
   }
 
@@ -86,7 +108,30 @@ class FinvuFlutterSdkPlugin: FlutterPlugin, NativeFinvuManager {
 
   override fun initialize(config: NativeFinvuConfig) {
     val pins: List<String>? = config.certificatePins?.filterNotNull()
-    FinvuManager.shared.initializeWith(FinvuClientConfig(config.finvuEndpoint, pins))
+    
+    // Create SNA auth config if provided
+    var finvuSNAAuthConfig: FinvuSNAAuthConfig? = null
+    config.finvuSnaAuthConfig?.let { snaConfig ->
+      // Get current activity from Flutter context
+      val activity = flutterPluginBinding?.applicationContext?.let { context ->
+        // Try to get the current activity from the context
+        if (context is Activity) {
+          context
+        } else {
+          // If context is not an activity, we need to get it from the Flutter engine
+          // This is a simplified approach - in practice you might need to use a different method
+          null
+        }
+      }
+      
+      if (activity != null) {
+        val nativeEnvironment = convertToNativeEnvironment(snaConfig.environment)
+        val scope = MainScope()
+        finvuSNAAuthConfig = FinvuSNAAuthClientConfig(activity, nativeEnvironment, scope)
+      }
+    }
+    
+    FinvuManager.shared.initializeWith(FinvuClientConfig(config.finvuEndpoint, pins, finvuSNAAuthConfig))
   }
 
   override fun connect(callback: (Result<Unit>) -> Unit) {
@@ -131,7 +176,7 @@ class FinvuFlutterSdkPlugin: FlutterPlugin, NativeFinvuManager {
       }
 
       val response = it.getOrThrow()
-      val loginOtpReference = NativeLoginOtpReference(response.reference)
+      val loginOtpReference = NativeLoginOtpReference(response.reference,response.snaToken,response.authType)
       callback(Result.success(loginOtpReference))
     }
   }

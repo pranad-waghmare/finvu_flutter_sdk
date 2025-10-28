@@ -11,7 +11,7 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
             if (error != nil) {
                 completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
             } else {
-                completion(.success(NativeLoginOtpReference(reference: loginReference!.reference)))
+                completion(.success(NativeLoginOtpReference(reference: loginReference!.reference,snaToken: loginReference!.snaToken, authType: loginReference!.authType)))
             }
         }
     }
@@ -24,6 +24,28 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
         formatter.formatOptions =  [.withInternetDateTime, .withFractionalSeconds]
     }
     
+    private func convertToNativeEnvironment(environment: NativeFinvuEnvironment) -> FinvuEnvironment {
+        switch environment {
+        case .development:
+            return .uat
+        case .production:
+            return .production
+        }
+    }
+    
+    private func getRootViewController() -> UIViewController? {
+        // For iOS 13+
+        if #available(iOS 13.0, *) {
+            let windowScene = UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .first
+            return windowScene?.windows.first { $0.isKeyWindow }?.rootViewController
+        } else {
+            // Fallback for earlier versions
+            return UIApplication.shared.keyWindow?.rootViewController
+        }
+    }
+    
     public static func register(with registrar: FlutterPluginRegistrar) {
         let messenger : FlutterBinaryMessenger = registrar.messenger()
         let api : NativeFinvuManager & NSObjectProtocol = FinvuFlutterSdkPlugin.init()
@@ -33,7 +55,20 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
     func initialize(config: NativeFinvuConfig) throws {
         let finvuUrl = URL(string: config.finvuEndpoint)!
         let pins = config.certificatePins?.compactMap { $0 }
-        let finvuConfig = FinvuClientConfig(finvuEndpoint: finvuUrl, certificatePins: pins)
+        
+        // Create SNA auth config if provided
+        var finvuSnaAuthConfig: FinvuSnaAuthConfig? = nil
+        if let snaConfig = config.finvuSnaAuthConfig {
+            // Get the root view controller
+            guard let rootViewController = getRootViewController() else {
+                throw FlutterError(code: "INITIALIZATION_ERROR", message: "Unable to get root view controller", details: nil)
+            }
+            
+            let environment = convertToNativeEnvironment(snaConfig.environment)
+            finvuSnaAuthConfig = FinvuSnaAuthConfig(environment: environment, viewController: rootViewController)
+        }
+        
+        let finvuConfig = FinvuClientConfig(finvuEndpoint: finvuUrl, certificatePins: pins, finvuSnaAuthConfig: finvuSnaAuthConfig)
         FinvuManager.shared.initializeWith(config: finvuConfig)
     }
     
@@ -453,9 +488,11 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
 final class FinvuClientConfig: FinvuConfig {
     var finvuEndpoint: URL
     var certificatePins: [String]?
+    var finvuSnaAuthConfig: FinvuSnaAuthConfig?
 
-    init(finvuEndpoint: URL, certificatePins: [String]?) {
+    init(finvuEndpoint: URL, certificatePins: [String]?, finvuSnaAuthConfig: FinvuSnaAuthConfig?) {
         self.finvuEndpoint = finvuEndpoint
         self.certificatePins = certificatePins
+        self.finvuSnaAuthConfig = finvuSnaAuthConfig
     }
 }

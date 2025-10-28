@@ -38,24 +38,54 @@ private func nilOrValue<T>(_ value: Any?) -> T? {
   return value as! T?
 }
 
+enum FinvuEnvironment: Int {
+  case development = 0
+  case production = 1
+}
+
+/// Generated class from Pigeon that represents data sent in messages.
+struct NativeFinvuSnaAuthConfig {
+  var environment: FinvuEnvironment
+
+  static func fromList(_ list: [Any?]) -> NativeFinvuSnaAuthConfig? {
+    let environment = FinvuEnvironment(rawValue: list[0] as! Int)!
+
+    return NativeFinvuSnaAuthConfig(
+      environment: environment
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      environment.rawValue,
+    ]
+  }
+}
+
 /// Generated class from Pigeon that represents data sent in messages.
 struct NativeFinvuConfig {
   var finvuEndpoint: String
   var certificatePins: [String?]? = nil
+  var finvuSnaAuthConfig: NativeFinvuSnaAuthConfig? = nil
 
   static func fromList(_ list: [Any?]) -> NativeFinvuConfig? {
     let finvuEndpoint = list[0] as! String
     let certificatePins: [String?]? = nilOrValue(list[1])
+    var finvuSnaAuthConfig: NativeFinvuSnaAuthConfig? = nil
+    if let finvuSnaAuthConfigList: [Any?] = nilOrValue(list[2]) {
+      finvuSnaAuthConfig = NativeFinvuSnaAuthConfig.fromList(finvuSnaAuthConfigList)
+    }
 
     return NativeFinvuConfig(
       finvuEndpoint: finvuEndpoint,
-      certificatePins: certificatePins
+      certificatePins: certificatePins,
+      finvuSnaAuthConfig: finvuSnaAuthConfig
     )
   }
   func toList() -> [Any?] {
     return [
       finvuEndpoint,
       certificatePins,
+      finvuSnaAuthConfig?.toList(),
     ]
   }
 }
@@ -615,17 +645,25 @@ struct NativeFIPReference {
 /// Generated class from Pigeon that represents data sent in messages.
 struct NativeLoginOtpReference {
   var reference: String
+  var snaToken: String? = nil
+  var authType: String
 
   static func fromList(_ list: [Any?]) -> NativeLoginOtpReference? {
     let reference = list[0] as! String
+    let snaToken: String? = nilOrValue(list[1])
+    let authType = list[2] as! String
 
     return NativeLoginOtpReference(
-      reference: reference
+      reference: reference,
+      snaToken: snaToken,
+      authType: authType
     )
   }
   func toList() -> [Any?] {
     return [
       reference,
+      snaToken,
+      authType,
     ]
   }
 }
@@ -786,20 +824,22 @@ private class NativeFinvuManagerCodecReader: FlutterStandardReader {
       case 147:
         return NativeFinvuConfig.fromList(self.readValue() as! [Any?])
       case 148:
-        return NativeHandleInfo.fromList(self.readValue() as! [Any?])
+        return NativeFinvuSnaAuthConfig.fromList(self.readValue() as! [Any?])
       case 149:
-        return NativeLinkedAccountDetailsInfo.fromList(self.readValue() as! [Any?])
+        return NativeHandleInfo.fromList(self.readValue() as! [Any?])
       case 150:
-        return NativeLinkedAccountInfo.fromList(self.readValue() as! [Any?])
+        return NativeLinkedAccountDetailsInfo.fromList(self.readValue() as! [Any?])
       case 151:
-        return NativeLinkedAccountsResponse.fromList(self.readValue() as! [Any?])
+        return NativeLinkedAccountInfo.fromList(self.readValue() as! [Any?])
       case 152:
-        return NativeLoginOtpReference.fromList(self.readValue() as! [Any?])
+        return NativeLinkedAccountsResponse.fromList(self.readValue() as! [Any?])
       case 153:
-        return NativeProcessConsentRequestResponse.fromList(self.readValue() as! [Any?])
+        return NativeLoginOtpReference.fromList(self.readValue() as! [Any?])
       case 154:
-        return NativeTypeIdentifier.fromList(self.readValue() as! [Any?])
+        return NativeProcessConsentRequestResponse.fromList(self.readValue() as! [Any?])
       case 155:
+        return NativeTypeIdentifier.fromList(self.readValue() as! [Any?])
+      case 156:
         return NativeTypeIdentifierInfo.fromList(self.readValue() as! [Any?])
       default:
         return super.readValue(ofType: type)
@@ -869,29 +909,32 @@ private class NativeFinvuManagerCodecWriter: FlutterStandardWriter {
     } else if let value = value as? NativeFinvuConfig {
       super.writeByte(147)
       super.writeValue(value.toList())
-    } else if let value = value as? NativeHandleInfo {
+    } else if let value = value as? NativeFinvuSnaAuthConfig {
       super.writeByte(148)
       super.writeValue(value.toList())
-    } else if let value = value as? NativeLinkedAccountDetailsInfo {
+    } else if let value = value as? NativeHandleInfo {
       super.writeByte(149)
       super.writeValue(value.toList())
-    } else if let value = value as? NativeLinkedAccountInfo {
+    } else if let value = value as? NativeLinkedAccountDetailsInfo {
       super.writeByte(150)
       super.writeValue(value.toList())
-    } else if let value = value as? NativeLinkedAccountsResponse {
+    } else if let value = value as? NativeLinkedAccountInfo {
       super.writeByte(151)
       super.writeValue(value.toList())
-    } else if let value = value as? NativeLoginOtpReference {
+    } else if let value = value as? NativeLinkedAccountsResponse {
       super.writeByte(152)
       super.writeValue(value.toList())
-    } else if let value = value as? NativeProcessConsentRequestResponse {
+    } else if let value = value as? NativeLoginOtpReference {
       super.writeByte(153)
       super.writeValue(value.toList())
-    } else if let value = value as? NativeTypeIdentifier {
+    } else if let value = value as? NativeProcessConsentRequestResponse {
       super.writeByte(154)
       super.writeValue(value.toList())
-    } else if let value = value as? NativeTypeIdentifierInfo {
+    } else if let value = value as? NativeTypeIdentifier {
       super.writeByte(155)
+      super.writeValue(value.toList())
+    } else if let value = value as? NativeTypeIdentifierInfo {
+      super.writeByte(156)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)

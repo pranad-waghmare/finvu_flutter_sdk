@@ -42,10 +42,41 @@ class NativeFinvuError (
   val details: Any? = null
 ) : Throwable()
 
+enum class FinvuEnvironment(val raw: Int) {
+  DEVELOPMENT(0),
+  PRODUCTION(1);
+
+  companion object {
+    fun ofRaw(raw: Int): FinvuEnvironment? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class NativeFinvuSnaAuthConfig (
+  val environment: FinvuEnvironment
+
+) {
+  companion object {
+    @Suppress("UNCHECKED_CAST")
+    fun fromList(list: List<Any?>): NativeFinvuSnaAuthConfig {
+      val environment = FinvuEnvironment.ofRaw(list[0] as Int)!!
+      return NativeFinvuSnaAuthConfig(environment)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf<Any?>(
+      environment.raw,
+    )
+  }
+}
+
 /** Generated class from Pigeon that represents data sent in messages. */
 data class NativeFinvuConfig (
   val finvuEndpoint: String,
-  val certificatePins: List<String?>? = null
+  val certificatePins: List<String?>? = null,
+  val finvuSnaAuthConfig: NativeFinvuSnaAuthConfig? = null
 
 ) {
   companion object {
@@ -53,13 +84,17 @@ data class NativeFinvuConfig (
     fun fromList(list: List<Any?>): NativeFinvuConfig {
       val finvuEndpoint = list[0] as String
       val certificatePins = list[1] as List<String?>?
-      return NativeFinvuConfig(finvuEndpoint, certificatePins)
+      val finvuSnaAuthConfig: NativeFinvuSnaAuthConfig? = (list[2] as List<Any?>?)?.let {
+        NativeFinvuSnaAuthConfig.fromList(it)
+      }
+      return NativeFinvuConfig(finvuEndpoint, certificatePins, finvuSnaAuthConfig)
     }
   }
   fun toList(): List<Any?> {
     return listOf<Any?>(
       finvuEndpoint,
       certificatePins,
+      finvuSnaAuthConfig?.toList(),
     )
   }
 }
@@ -601,19 +636,25 @@ data class NativeFIPReference (
 
 /** Generated class from Pigeon that represents data sent in messages. */
 data class NativeLoginOtpReference (
-  val reference: String
+  val reference: String,
+  val snaToken: String? = null,
+  val authType: String
 
 ) {
   companion object {
     @Suppress("UNCHECKED_CAST")
     fun fromList(list: List<Any?>): NativeLoginOtpReference {
       val reference = list[0] as String
-      return NativeLoginOtpReference(reference)
+      val snaToken = list[1] as String?
+      val authType = list[2] as String
+      return NativeLoginOtpReference(reference, snaToken, authType)
     }
   }
   fun toList(): List<Any?> {
     return listOf<Any?>(
       reference,
+      snaToken,
+      authType,
     )
   }
 }
@@ -830,40 +871,45 @@ private object NativeFinvuManagerCodec : StandardMessageCodec() {
       }
       148.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          NativeHandleInfo.fromList(it)
+          NativeFinvuSnaAuthConfig.fromList(it)
         }
       }
       149.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          NativeLinkedAccountDetailsInfo.fromList(it)
+          NativeHandleInfo.fromList(it)
         }
       }
       150.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          NativeLinkedAccountInfo.fromList(it)
+          NativeLinkedAccountDetailsInfo.fromList(it)
         }
       }
       151.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          NativeLinkedAccountsResponse.fromList(it)
+          NativeLinkedAccountInfo.fromList(it)
         }
       }
       152.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          NativeLoginOtpReference.fromList(it)
+          NativeLinkedAccountsResponse.fromList(it)
         }
       }
       153.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          NativeProcessConsentRequestResponse.fromList(it)
+          NativeLoginOtpReference.fromList(it)
         }
       }
       154.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          NativeTypeIdentifier.fromList(it)
+          NativeProcessConsentRequestResponse.fromList(it)
         }
       }
       155.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          NativeTypeIdentifier.fromList(it)
+        }
+      }
+      156.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           NativeTypeIdentifierInfo.fromList(it)
         }
@@ -953,36 +999,40 @@ private object NativeFinvuManagerCodec : StandardMessageCodec() {
         stream.write(147)
         writeValue(stream, value.toList())
       }
-      is NativeHandleInfo -> {
+      is NativeFinvuSnaAuthConfig -> {
         stream.write(148)
         writeValue(stream, value.toList())
       }
-      is NativeLinkedAccountDetailsInfo -> {
+      is NativeHandleInfo -> {
         stream.write(149)
         writeValue(stream, value.toList())
       }
-      is NativeLinkedAccountInfo -> {
+      is NativeLinkedAccountDetailsInfo -> {
         stream.write(150)
         writeValue(stream, value.toList())
       }
-      is NativeLinkedAccountsResponse -> {
+      is NativeLinkedAccountInfo -> {
         stream.write(151)
         writeValue(stream, value.toList())
       }
-      is NativeLoginOtpReference -> {
+      is NativeLinkedAccountsResponse -> {
         stream.write(152)
         writeValue(stream, value.toList())
       }
-      is NativeProcessConsentRequestResponse -> {
+      is NativeLoginOtpReference -> {
         stream.write(153)
         writeValue(stream, value.toList())
       }
-      is NativeTypeIdentifier -> {
+      is NativeProcessConsentRequestResponse -> {
         stream.write(154)
         writeValue(stream, value.toList())
       }
-      is NativeTypeIdentifierInfo -> {
+      is NativeTypeIdentifier -> {
         stream.write(155)
+        writeValue(stream, value.toList())
+      }
+      is NativeTypeIdentifierInfo -> {
+        stream.write(156)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
