@@ -11,7 +11,7 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
             if (error != nil) {
                 completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
             } else {
-                completion(.success(NativeLoginOtpReference(reference: loginReference!.reference,snaToken: loginReference!.snaToken, authType: loginReference!.authType)))
+                completion(.success(NativeLoginOtpReference(reference: loginReference!.reference, snaToken: loginReference!.snaToken, authType: loginReference!.authType)))
             }
         }
     }
@@ -24,7 +24,7 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
         formatter.formatOptions =  [.withInternetDateTime, .withFractionalSeconds]
     }
     
-    private func convertToNativeEnvironment(environment: NativeFinvuEnvironment) -> FinvuEnvironment {
+    private func convertToNativeEnvironment(environment: FinvuEnvironment) -> FinvuSDK.FinvuEnvironment {
         switch environment {
         case .development:
             return .uat
