@@ -38,17 +38,17 @@ private func nilOrValue<T>(_ value: Any?) -> T? {
   return value as! T?
 }
 
-enum FinvuEnvironment: Int {
-  case development = 0
+enum FinvuEnv: Int {
+  case uat = 0
   case production = 1
 }
 
 /// Generated class from Pigeon that represents data sent in messages.
 struct NativeFinvuSnaAuthConfig {
-  var environment: FinvuEnvironment
+  var environment: FinvuEnv
 
   static func fromList(_ list: [Any?]) -> NativeFinvuSnaAuthConfig? {
-    let environment = FinvuEnvironment(rawValue: list[0] as! Int)!
+    let environment = FinvuEnv(rawValue: list[0] as! Int)!
 
     return NativeFinvuSnaAuthConfig(
       environment: environment

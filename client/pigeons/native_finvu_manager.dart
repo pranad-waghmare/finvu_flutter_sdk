@@ -7,8 +7,8 @@ import 'package:pigeon/pigeon.dart';
   swiftOut: 'ios/Classes/generated/NativeFinvuManager.g.swift',
   kotlinOptions: KotlinOptions(errorClassName: 'NativeFinvuError'),
 ))
-enum FinvuEnvironment {
-  development,
+enum FinvuEnv {
+  uat,
   production,
 }
 
@@ -16,7 +16,7 @@ class NativeFinvuSnaAuthConfig {
   NativeFinvuSnaAuthConfig({
     required this.environment,
   });
-  FinvuEnvironment environment;
+  FinvuEnv environment;
 }
 
 class NativeFinvuConfig {

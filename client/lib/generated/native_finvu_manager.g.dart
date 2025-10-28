@@ -15,8 +15,8 @@ PlatformException _createConnectionError(String channelName) {
   );
 }
 
-enum FinvuEnvironment {
-  development,
+enum FinvuEnv {
+  uat,
   production,
 }
 
@@ -25,7 +25,7 @@ class NativeFinvuSnaAuthConfig {
     required this.environment,
   });
 
-  FinvuEnvironment environment;
+  FinvuEnv environment;
 
   Object encode() {
     return <Object?>[
@@ -36,7 +36,7 @@ class NativeFinvuSnaAuthConfig {
   static NativeFinvuSnaAuthConfig decode(Object result) {
     result as List<Object?>;
     return NativeFinvuSnaAuthConfig(
-      environment: FinvuEnvironment.values[result[0]! as int],
+      environment: FinvuEnv.values[result[0]! as int],
     );
   }
 }

@@ -42,12 +42,12 @@ class NativeFinvuError (
   val details: Any? = null
 ) : Throwable()
 
-enum class FinvuEnvironment(val raw: Int) {
-  DEVELOPMENT(0),
+enum class FinvuEnv(val raw: Int) {
+  UAT(0),
   PRODUCTION(1);
 
   companion object {
-    fun ofRaw(raw: Int): FinvuEnvironment? {
+    fun ofRaw(raw: Int): FinvuEnv? {
       return values().firstOrNull { it.raw == raw }
     }
   }
@@ -55,13 +55,13 @@ enum class FinvuEnvironment(val raw: Int) {
 
 /** Generated class from Pigeon that represents data sent in messages. */
 data class NativeFinvuSnaAuthConfig (
-  val environment: FinvuEnvironment
+  val environment: FinvuEnv
 
 ) {
   companion object {
     @Suppress("UNCHECKED_CAST")
     fun fromList(list: List<Any?>): NativeFinvuSnaAuthConfig {
-      val environment = FinvuEnvironment.ofRaw(list[0] as Int)!!
+      val environment = FinvuEnv.ofRaw(list[0] as Int)!!
       return NativeFinvuSnaAuthConfig(environment)
     }
   }

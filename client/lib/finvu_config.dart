@@ -1,5 +1,5 @@
-enum FinvuEnvironment {
-  development,
+enum FinvuEnv {
+  uat,
   production,
 }
 
@@ -9,7 +9,7 @@ class FinvuSnaAuthConfig {
   });
 
   /// The environment for SNA authentication
-  FinvuEnvironment environment;
+  FinvuEnv environment;
 }
 
 class FinvuConfig {

@@ -32,6 +32,8 @@ import NativeFIPInfo
 import NativeFIPSearchResponse
 import NativeTypeIdentifier
 import NativeFIPReference
+import FinvuEnv
+import NativeFinvuSnaAuthConfig
 import com.finvu.android.utils.FinvuConfig
 import com.finvu.android.utils.FinvuSNAAuthConfig
 import com.finvu.android.FinvuManager
@@ -90,10 +92,10 @@ class FinvuFlutterSdkPlugin: FlutterPlugin, NativeFinvuManager {
     dateFormatter.timeZone = TimeZone.getDefault()
   }
 
-  private fun convertToNativeEnvironment(environment: NativeFinvuEnvironment): FinvuEnvironment {
+  private fun convertToNativeEnvironment(environment: FinvuEnv): FinvuEnvironment {
     return when (environment) {
-      NativeFinvuEnvironment.DEVELOPMENT -> FinvuEnvironment.UAT
-      NativeFinvuEnvironment.PRODUCTION -> FinvuEnvironment.PRODUCTION
+      FinvuEnv.UAT -> FinvuEnvironment.UAT
+      FinvuEnv.PRODUCTION -> FinvuEnvironment.PRODUCTION
     }
   }
 
@@ -176,7 +178,7 @@ class FinvuFlutterSdkPlugin: FlutterPlugin, NativeFinvuManager {
       }
 
       val response = it.getOrThrow()
-      val loginOtpReference = NativeLoginOtpReference(response.reference,response.snaToken,response.authType)
+      val loginOtpReference = NativeLoginOtpReference(response.reference, response.snaToken, response.authType ?: "")
       callback(Result.success(loginOtpReference))
     }
   }

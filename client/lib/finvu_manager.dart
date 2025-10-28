@@ -28,10 +28,10 @@ class FinvuManager {
     final native.NativeFinvuSnaAuthConfig? nativeSnaAuthConfig =
         config.finvuSnaAuthConfig != null
             ? native.NativeFinvuSnaAuthConfig(
-                environment: config.finvuSnaAuthConfig!.environment ==
-                        FinvuEnvironment.development
-                    ? native.FinvuEnvironment.development
-                    : native.FinvuEnvironment.production,
+                environment:
+                    config.finvuSnaAuthConfig!.environment == FinvuEnv.uat
+                        ? native.FinvuEnv.uat
+                        : native.FinvuEnv.production,
               )
             : null;
 
