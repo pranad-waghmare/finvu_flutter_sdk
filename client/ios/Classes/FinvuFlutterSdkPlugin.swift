@@ -60,7 +60,7 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
                 throw FlutterError(code: "INITIALIZATION_ERROR", message: "Unable to get root view controller", details: nil)
             }
             
-            let environment = convertToNativeEnvironment(snaConfig.environment)
+            let environment = convertToNativeEnvironment(environment: snaConfig.environment)
             // Create config with proper parameter order: environment must precede viewController
             // Ensure initialization happens on main thread like reference implementation
             finvuSnaAuthConfig = FinvuSnaAuthConfig(environment: environment, viewController: vc)
