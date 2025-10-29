@@ -39,8 +39,15 @@ import com.finvu.android.utils.FinvuSNAAuthConfig
 import com.finvu.android.FinvuManager
 import com.finvu.android.types.FinvuEnvironment
 import android.app.Activity
+import android.content.Context
+import androidx.annotation.MainThread
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import com.finvu.android.publicInterface.ConsentDataFrequency
 import com.finvu.android.publicInterface.ConsentDataLifePeriod
 import com.finvu.android.publicInterface.ConsentDetail
@@ -78,13 +85,20 @@ data class FinvuClientConfig(
 ) : FinvuConfig
 
 /** FinvuFlutterSdkPlugin */
-class FinvuFlutterSdkPlugin: FlutterPlugin, NativeFinvuManager {
+class FinvuFlutterSdkPlugin: FlutterPlugin, ActivityAware, NativeFinvuManager {
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
   /// when the Flutter Engine is detached from the Activity
   private lateinit var channel : MethodChannel
   private var flutterPluginBinding: FlutterPlugin.FlutterPluginBinding? = null
+
+  // Flutter context/activity
+  private lateinit var appContext: Context
+  private var activity: Activity? = null
+
+  // Coroutine scope for native calls
+  private var scope: CoroutineScope? = null
 
   private val dateFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.getDefault())
 
@@ -100,12 +114,34 @@ class FinvuFlutterSdkPlugin: FlutterPlugin, NativeFinvuManager {
   }
 
   override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+    appContext = binding.applicationContext
     flutterPluginBinding = binding
+    scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     NativeFinvuManager.setUp(binding.binaryMessenger, this)
   }
 
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     NativeFinvuManager.setUp(binding.binaryMessenger, null)
+    scope?.cancel()
+    scope = null
+  }
+
+  /* -------------------- ActivityAware -------------------- */
+
+  override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+    activity = binding.activity
+  }
+
+  override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+    activity = binding.activity
+  }
+
+  override fun onDetachedFromActivityForConfigChanges() {
+    activity = null
+  }
+
+  override fun onDetachedFromActivity() {
+    activity = null
   }
 
   override fun initialize(config: NativeFinvuConfig) {
@@ -114,22 +150,12 @@ class FinvuFlutterSdkPlugin: FlutterPlugin, NativeFinvuManager {
     // Create SNA auth config if provided
     var finvuSNAAuthConfig: FinvuSNAAuthConfig? = null
     config.finvuSnaAuthConfig?.let { snaConfig ->
-      // Get current activity from Flutter context
-      val activity = flutterPluginBinding?.applicationContext?.let { context ->
-        // Try to get the current activity from the context
-        if (context is Activity) {
-          context
-        } else {
-          // If context is not an activity, we need to get it from the Flutter engine
-          // This is a simplified approach - in practice you might need to use a different method
-          null
-        }
-      }
+      val act = activity
+      val sc = scope
       
-      if (activity != null) {
+      if (act != null && sc != null) {
         val nativeEnvironment = convertToNativeEnvironment(snaConfig.environment)
-        val scope = MainScope()
-        finvuSNAAuthConfig = FinvuSNAAuthClientConfig(activity, nativeEnvironment, scope)
+        finvuSNAAuthConfig = FinvuSNAAuthClientConfig(act, nativeEnvironment, sc)
       }
     }
     
