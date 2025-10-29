@@ -33,17 +33,13 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
         }
     }
     
-    private func getRootViewController() -> UIViewController? {
-        // For iOS 13+
-        if #available(iOS 13.0, *) {
-            let windowScene = UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .first
-            return windowScene?.windows.first { $0.isKeyWindow }?.rootViewController
-        } else {
-            // Fallback for earlier versions
-            return UIApplication.shared.keyWindow?.rootViewController
-        }
+    // Resolve a view controller safely on iOS 13+
+    private func currentRootViewController() -> UIViewController? {
+        return UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }?
+            .rootViewController
     }
     
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -59,13 +55,15 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
         // Create SNA auth config if provided
         var finvuSnaAuthConfig: FinvuSnaAuthConfig? = nil
         if let snaConfig = config.finvuSnaAuthConfig {
-            // Get the root view controller
-            guard let rootViewController = getRootViewController() else {
+            // Get the root view controller using the same pattern as reference
+            guard let vc = currentRootViewController() else {
                 throw FlutterError(code: "INITIALIZATION_ERROR", message: "Unable to get root view controller", details: nil)
             }
             
             let environment = convertToNativeEnvironment(snaConfig.environment)
-            finvuSnaAuthConfig = FinvuSnaAuthConfig(viewController: rootViewController, environment: environment)
+            // Create config with proper parameter order: environment must precede viewController
+            // Ensure initialization happens on main thread like reference implementation
+            finvuSnaAuthConfig = FinvuSnaAuthConfig(environment: environment, viewController: vc)
         }
         
         let finvuConfig = FinvuClientConfig(finvuEndpoint: finvuUrl, certificatePins: pins, finvuSnaAuthConfig: finvuSnaAuthConfig)
