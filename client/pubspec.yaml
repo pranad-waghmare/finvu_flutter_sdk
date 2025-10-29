@@ -13,7 +13,13 @@ dependencies:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
   finvu_flutter_sdk_core:
-    path: ../core
+    # for local development uncomment the below line and comment the git line
+    # path: ../core
+    # for remote development uncomment the git line and comment the path line
+    git:
+      url: https://github.com/pranad-waghmare/finvu_flutter_sdk.git
+      path: core
+      ref: 1.0.5
 
 dev_dependencies:
   flutter_test:
