@@ -11,7 +11,7 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
             if (error != nil) {
                 completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
             } else {
-                completion(.success(NativeLoginOtpReference(reference: loginReference!.reference, authType: loginReference!.authType, snaToken: loginReference!.snaToken)))
+                completion(.success(NativeLoginOtpReference(reference: loginReference!.reference, snaToken: loginReference!.snaToken ?? "", authType: loginReference!.authType ?? "")))
             }
         }
     }
@@ -65,7 +65,7 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
             }
             
             let environment = convertToNativeEnvironment(snaConfig.environment)
-            finvuSnaAuthConfig = FinvuSnaAuthConfig(environment: environment, viewController: rootViewController)
+            finvuSnaAuthConfig = FinvuSnaAuthConfig(viewController: rootViewController, environment: environment)
         }
         
         let finvuConfig = FinvuClientConfig(finvuEndpoint: finvuUrl, certificatePins: pins, finvuSnaAuthConfig: finvuSnaAuthConfig)
