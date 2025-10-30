@@ -7,13 +7,27 @@ import 'package:pigeon/pigeon.dart';
   swiftOut: 'ios/Classes/generated/NativeFinvuManager.g.swift',
   kotlinOptions: KotlinOptions(errorClassName: 'NativeFinvuError'),
 ))
+enum FinvuEnv {
+  uat,
+  production,
+}
+
+class NativeFinvuSnaAuthConfig {
+  NativeFinvuSnaAuthConfig({
+    required this.environment,
+  });
+  FinvuEnv environment;
+}
+
 class NativeFinvuConfig {
   NativeFinvuConfig({
     required this.finvuEndpoint,
     this.certificatePins,
+    this.finvuSnaAuthConfig,
   });
   String finvuEndpoint;
   List<String?>? certificatePins;
+  NativeFinvuSnaAuthConfig? finvuSnaAuthConfig;
 }
 
 class NativeHandleInfo {
@@ -318,8 +332,12 @@ class NativeConsentAccountDetails {
 class NativeLoginOtpReference {
   NativeLoginOtpReference({
     required this.reference,
+    required this.authType,
+    this.snaToken,
   });
   String reference;
+  String? snaToken;
+  String authType;
 }
 
 class NativeConsentHandleStatusResponse {

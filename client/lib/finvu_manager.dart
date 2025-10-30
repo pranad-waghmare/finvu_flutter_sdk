@@ -1,5 +1,6 @@
 import 'package:finvu_flutter_sdk/finvu_config.dart';
-import 'package:finvu_flutter_sdk/generated/native_finvu_manager.g.dart';
+import 'package:finvu_flutter_sdk/generated/native_finvu_manager.g.dart'
+    as native;
 import 'package:finvu_flutter_sdk_core/finvu_consent_info.dart';
 import 'package:finvu_flutter_sdk_core/finvu_discovered_accounts.dart';
 import 'package:finvu_flutter_sdk_core/finvu_exception.dart';
@@ -10,7 +11,7 @@ import 'package:finvu_flutter_sdk_core/finvu_linked_accounts.dart';
 import 'package:flutter/services.dart';
 
 class FinvuManager {
-  final _nativeFinvuManager = NativeFinvuManager();
+  final _nativeFinvuManager = native.NativeFinvuManager();
 
   static final FinvuManager _instance = FinvuManager._internal();
 
@@ -24,9 +25,20 @@ class FinvuManager {
 
   /// Initializes the SDK with the [config]
   void initialize(final FinvuConfig config) {
-    final NativeFinvuConfig nativeFinvuConfig = NativeFinvuConfig(
+    final native.NativeFinvuSnaAuthConfig? nativeSnaAuthConfig =
+        config.finvuSnaAuthConfig != null
+            ? native.NativeFinvuSnaAuthConfig(
+                environment:
+                    config.finvuSnaAuthConfig!.environment == FinvuEnv.uat
+                        ? native.FinvuEnv.uat
+                        : native.FinvuEnv.production,
+              )
+            : null;
+
+    final native.NativeFinvuConfig nativeFinvuConfig = native.NativeFinvuConfig(
       finvuEndpoint: config.finvuEndpoint,
       certificatePins: config.certificatePins,
+      finvuSnaAuthConfig: nativeSnaAuthConfig,
     );
     _nativeFinvuManager.initialize(nativeFinvuConfig);
   }
@@ -78,6 +90,8 @@ class FinvuManager {
         .then(
           (otpReference) => FinvuLoginOtpReference(
             reference: otpReference.reference,
+            snaToken: otpReference.snaToken,
+            authType: otpReference.authType,
           ),
         )
         .catchError(
@@ -186,15 +200,16 @@ class FinvuManager {
     List<String> fiTypes,
     List<FinvuTypeIdentifierInfo> identifiers,
   ) {
-    final List<NativeTypeIdentifierInfo> nativeTypeIdentifierInfo = identifiers
-        .map(
-          (identifier) => NativeTypeIdentifierInfo(
-            category: identifier.category,
-            type: identifier.type,
-            value: identifier.value,
-          ),
-        )
-        .toList();
+    final List<native.NativeTypeIdentifierInfo> nativeTypeIdentifierInfo =
+        identifiers
+            .map(
+              (identifier) => native.NativeTypeIdentifierInfo(
+                category: identifier.category,
+                type: identifier.type,
+                value: identifier.value,
+              ),
+            )
+            .toList();
 
     return _nativeFinvuManager
         .discoverAccounts(fipId, fiTypes, nativeTypeIdentifierInfo)
@@ -221,15 +236,16 @@ class FinvuManager {
     List<String> fiTypes,
     List<FinvuTypeIdentifierInfo> identifiers,
   ) {
-    final List<NativeTypeIdentifierInfo> nativeTypeIdentifierInfo = identifiers
-        .map(
-          (identifier) => NativeTypeIdentifierInfo(
-            category: identifier.category,
-            type: identifier.type,
-            value: identifier.value,
-          ),
-        )
-        .toList();
+    final List<native.NativeTypeIdentifierInfo> nativeTypeIdentifierInfo =
+        identifiers
+            .map(
+              (identifier) => native.NativeTypeIdentifierInfo(
+                category: identifier.category,
+                type: identifier.type,
+                value: identifier.value,
+              ),
+            )
+            .toList();
 
     return _nativeFinvuManager
         .discoverAccountsAsync(fipId, fiTypes, nativeTypeIdentifierInfo)
@@ -325,15 +341,15 @@ class FinvuManager {
     FinvuFIPDetails fipDetails,
     List<FinvuDiscoveredAccountInfo> accounts,
   ) {
-    final nativeFipDetails = NativeFIPDetails(
+    final nativeFipDetails = native.NativeFIPDetails(
       fipId: fipDetails.fipId,
       typeIdentifiers: fipDetails.typeIdentifiers
           .map(
-            (typeIdentifier) => NativeFIPFiTypeIdentifier(
+            (typeIdentifier) => native.NativeFIPFiTypeIdentifier(
               fiType: typeIdentifier.fiType,
               identifiers: typeIdentifier.identifiers
                   .map(
-                    (identifier) => NativeTypeIdentifier(
+                    (identifier) => native.NativeTypeIdentifier(
                       type: identifier.type,
                       category: identifier.category,
                     ),
@@ -346,7 +362,7 @@ class FinvuManager {
 
     final nativeAccounts = accounts
         .map(
-          (account) => NativeDiscoveredAccountInfo(
+          (account) => native.NativeDiscoveredAccountInfo(
             accountType: account.accountType,
             accountReferenceNumber: account.accountReferenceNumber,
             maskedAccountNumber: account.maskedAccountNumber,
@@ -376,7 +392,7 @@ class FinvuManager {
     FinvuAccountLinkingRequestReference requestReference,
     String otp,
   ) {
-    final nativeRequestReference = NativeAccountLinkingRequestReference(
+    final nativeRequestReference = native.NativeAccountLinkingRequestReference(
       referenceNumber: requestReference.referenceNumber,
     );
     return _nativeFinvuManager
@@ -460,30 +476,30 @@ class FinvuManager {
     FinvuConsentRequestDetailInfo consentInfo,
     List<FinvuLinkedAccountDetailsInfo> linkedAccounts,
   ) {
-    final nativeConsentInfo = NativeConsentRequestDetailInfo(
+    final nativeConsentInfo = native.NativeConsentRequestDetailInfo(
       consentHandleId: consentInfo.consentHandle,
-      financialInformationUser: NativeFinancialInformationEntity(
+      financialInformationUser: native.NativeFinancialInformationEntity(
         id: consentInfo.financialInformationUser.id,
         name: consentInfo.financialInformationUser.name,
       ),
-      consentPurposeInfo: NativeConsentPurposeInfo(
+      consentPurposeInfo: native.NativeConsentPurposeInfo(
         code: consentInfo.consentPurposeInfo.code,
         text: consentInfo.consentPurposeInfo.text,
       ),
       consentDisplayDescriptions: consentInfo.consentDisplayDescriptions,
-      dataDateTimeRange: NativeDateTimeRange(
+      dataDateTimeRange: native.NativeDateTimeRange(
         from: consentInfo.dataDateTimeRange.from?.toIso8601String() ?? "",
         to: consentInfo.dataDateTimeRange.to?.toIso8601String() ?? "",
       ),
-      consentDateTimeRange: NativeDateTimeRange(
+      consentDateTimeRange: native.NativeDateTimeRange(
         from: consentInfo.consentDateTimeRange.from?.toIso8601String() ?? "",
         to: consentInfo.consentDateTimeRange.to?.toIso8601String() ?? "",
       ),
-      consentDataFrequency: NativeConsentDataFrequency(
+      consentDataFrequency: native.NativeConsentDataFrequency(
         unit: consentInfo.consentDataFrequency.unit,
         value: consentInfo.consentDataFrequency.value,
       ),
-      consentDataLifePeriod: NativeConsentDataLifePeriod(
+      consentDataLifePeriod: native.NativeConsentDataLifePeriod(
         unit: consentInfo.consentDataLifePeriod.unit,
         value: consentInfo.consentDataLifePeriod.value,
       ),
@@ -491,7 +507,7 @@ class FinvuManager {
 
     final nativeLinkedAccounts = linkedAccounts
         .map(
-          (account) => NativeLinkedAccountDetailsInfo(
+          (account) => native.NativeLinkedAccountDetailsInfo(
             userId: account.userId,
             fipId: account.fipId,
             fipName: account.fipName,
@@ -536,30 +552,30 @@ class FinvuManager {
   Future<FinvuProcessConsentRequestResponse> denyConsentRequest(
     FinvuConsentRequestDetailInfo consentInfo,
   ) {
-    final nativeConsentInfo = NativeConsentRequestDetailInfo(
+    final nativeConsentInfo = native.NativeConsentRequestDetailInfo(
       consentHandleId: consentInfo.consentHandle,
-      financialInformationUser: NativeFinancialInformationEntity(
+      financialInformationUser: native.NativeFinancialInformationEntity(
         id: consentInfo.financialInformationUser.id,
         name: consentInfo.financialInformationUser.name,
       ),
-      consentPurposeInfo: NativeConsentPurposeInfo(
+      consentPurposeInfo: native.NativeConsentPurposeInfo(
         code: consentInfo.consentPurposeInfo.code,
         text: consentInfo.consentPurposeInfo.text,
       ),
       consentDisplayDescriptions: consentInfo.consentDisplayDescriptions,
-      dataDateTimeRange: NativeDateTimeRange(
+      dataDateTimeRange: native.NativeDateTimeRange(
         from: consentInfo.dataDateTimeRange.from?.toIso8601String() ?? "",
         to: consentInfo.dataDateTimeRange.to?.toIso8601String() ?? "",
       ),
-      consentDateTimeRange: NativeDateTimeRange(
+      consentDateTimeRange: native.NativeDateTimeRange(
         from: consentInfo.consentDateTimeRange.from?.toIso8601String() ?? "",
         to: consentInfo.consentDateTimeRange.to?.toIso8601String() ?? "",
       ),
-      consentDataFrequency: NativeConsentDataFrequency(
+      consentDataFrequency: native.NativeConsentDataFrequency(
         unit: consentInfo.consentDataFrequency.unit,
         value: consentInfo.consentDataFrequency.value,
       ),
-      consentDataLifePeriod: NativeConsentDataLifePeriod(
+      consentDataLifePeriod: native.NativeConsentDataLifePeriod(
         unit: consentInfo.consentDataLifePeriod.unit,
         value: consentInfo.consentDataLifePeriod.value,
       ),
@@ -592,10 +608,10 @@ class FinvuManager {
   Future<void> revokeConsent(String consentId,
       AccountAggregator? accountAggregator, FIPReference? fipDetails) {
     final nativeAA = accountAggregator != null
-        ? NativeAccountAggregator(id: accountAggregator.id!)
+        ? native.NativeAccountAggregator(id: accountAggregator.id!)
         : null;
     final nativeFipDetails = fipDetails != null
-        ? NativeFIPReference(
+        ? native.NativeFIPReference(
             fipId: fipDetails.fipId, fipName: fipDetails.fipName)
         : null;
 

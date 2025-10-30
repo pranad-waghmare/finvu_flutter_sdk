@@ -208,9 +208,13 @@ class FIPReference {
 class FinvuLoginOtpReference {
   FinvuLoginOtpReference({
     required this.reference,
+    this.snaToken,
+    required this.authType,
   });
 
   String reference;
+  String? snaToken;
+  String authType;
 }
 
 class FinvuConsentHandleStatusResponse {

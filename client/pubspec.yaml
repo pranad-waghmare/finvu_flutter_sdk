@@ -1,6 +1,6 @@
 name: finvu_flutter_sdk
 description: "A new Flutter plugin project."
-version: 0.0.4
+version: 1.0.5
 homepage: https://www.finvu.in/
 publish_to: none
 
@@ -13,13 +13,19 @@ dependencies:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
   finvu_flutter_sdk_core:
-    path: ../core
+    # for local development uncomment the below line and comment the git line
+    # path: ../core
+    # for remote development uncomment the git line and comment the path line
+    git:
+      url: https://github.com/Cookiejar-technologies/finvu_flutter_sdk.git
+      path: core
+      ref: 1.0.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
-  pigeon: ^14.0.1
+  flutter_lints: ^6.0.0
+  pigeon: ^26.0.2
 
 flutter:
   plugin:
