@@ -57,15 +57,3 @@ dependencies {
     implementation("com.finvu.android:core-sdk:1.0.6")
     implementation("com.finvu.android:client-sdk:1.0.7")
 }
-
-testOptions {
-    unitTests.all {
-        useJUnitPlatform()
-
-        testLogging {
-           events "passed", "skipped", "failed", "standardOut", "standardError"
-           outputs.upToDateWhen {false}
-           showStandardStreams = true
-        }
-    }
-}
