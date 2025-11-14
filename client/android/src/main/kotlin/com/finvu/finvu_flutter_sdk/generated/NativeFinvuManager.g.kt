@@ -14,6 +14,9 @@ import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 private object NativeFinvuManagerPigeonUtils {
 
+  fun createConnectionError(channelName: String): NativeFinvuError {
+    return NativeFinvuError("channel-error",  "Unable to establish connection on channel: '$channelName'.", "")  }
+
   fun wrapResult(result: Any?): List<Any?> {
     return listOf(result)
   }
@@ -1193,6 +1196,86 @@ data class NativeEntityInfo (
 
   override fun hashCode(): Int = toList().hashCode()
 }
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class NativeFinvuEvent (
+  val eventName: String,
+  val eventCategory: String,
+  val timestamp: String,
+  val aaSdkVersion: String,
+  val params: Map<String?, Any?>? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): NativeFinvuEvent {
+      val eventName = pigeonVar_list[0] as String
+      val eventCategory = pigeonVar_list[1] as String
+      val timestamp = pigeonVar_list[2] as String
+      val aaSdkVersion = pigeonVar_list[3] as String
+      val params = pigeonVar_list[4] as Map<String?, Any?>?
+      return NativeFinvuEvent(eventName, eventCategory, timestamp, aaSdkVersion, params)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      eventName,
+      eventCategory,
+      timestamp,
+      aaSdkVersion,
+      params,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other !is NativeFinvuEvent) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    return NativeFinvuManagerPigeonUtils.deepEquals(toList(), other.toList())  }
+
+  override fun hashCode(): Int = toList().hashCode()
+}
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class NativeEventDefinition (
+  val category: String,
+  val stage: String? = null,
+  val fipId: String? = null,
+  val fips: List<String?>? = null,
+  val fiTypes: List<String?>? = null
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): NativeEventDefinition {
+      val category = pigeonVar_list[0] as String
+      val stage = pigeonVar_list[1] as String?
+      val fipId = pigeonVar_list[2] as String?
+      val fips = pigeonVar_list[3] as List<String?>?
+      val fiTypes = pigeonVar_list[4] as List<String?>?
+      return NativeEventDefinition(category, stage, fipId, fips, fiTypes)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      category,
+      stage,
+      fipId,
+      fips,
+      fiTypes,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other !is NativeEventDefinition) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    return NativeFinvuManagerPigeonUtils.deepEquals(toList(), other.toList())  }
+
+  override fun hashCode(): Int = toList().hashCode()
+}
 private open class NativeFinvuManagerPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
@@ -1361,6 +1444,16 @@ private open class NativeFinvuManagerPigeonCodec : StandardMessageCodec() {
           NativeEntityInfo.fromList(it)
         }
       }
+      162.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          NativeFinvuEvent.fromList(it)
+        }
+      }
+      163.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          NativeEventDefinition.fromList(it)
+        }
+      }
       else -> super.readValueOfType(type, buffer)
     }
   }
@@ -1498,12 +1591,46 @@ private open class NativeFinvuManagerPigeonCodec : StandardMessageCodec() {
         stream.write(161)
         writeValue(stream, value.toList())
       }
+      is NativeFinvuEvent -> {
+        stream.write(162)
+        writeValue(stream, value.toList())
+      }
+      is NativeEventDefinition -> {
+        stream.write(163)
+        writeValue(stream, value.toList())
+      }
       else -> super.writeValue(stream, value)
     }
   }
 }
 
 
+/** Generated class from Pigeon that represents Flutter messages that can be called from Kotlin. */
+class NativeFinvuEventListener(private val binaryMessenger: BinaryMessenger, private val messageChannelSuffix: String = "") {
+  companion object {
+    /** The codec used by NativeFinvuEventListener. */
+    val codec: MessageCodec<Any?> by lazy {
+      NativeFinvuManagerPigeonCodec()
+    }
+  }
+  fun onEvent(eventArg: NativeFinvuEvent, callback: (Result<Unit>) -> Unit)
+{
+    val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+    val channelName = "dev.flutter.pigeon.finvu_flutter_sdk.NativeFinvuEventListener.onEvent$separatedMessageChannelSuffix"
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, channelName, codec)
+    channel.send(listOf(eventArg)) {
+      if (it is List<*>) {
+        if (it.size > 1) {
+          callback(Result.failure(NativeFinvuError(it[0] as String, it[1] as String, it[2] as String?)))
+        } else {
+          callback(Result.success(Unit))
+        }
+      } else {
+        callback(Result.failure(NativeFinvuManagerPigeonUtils.createConnectionError(channelName)))
+      } 
+    }
+  }
+}
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
 interface NativeFinvuManager {
   fun initialize(config: NativeFinvuConfig)
@@ -1529,6 +1656,12 @@ interface NativeFinvuManager {
   fun getConsentHandleStatus(handleId: String, callback: (Result<NativeConsentHandleStatusResponse>) -> Unit)
   fun getConsentRequestDetails(handleId: String, callback: (Result<NativeConsentRequestDetailInfo>) -> Unit)
   fun logout(callback: (Result<Unit>) -> Unit)
+  fun addEventListener()
+  fun removeEventListener()
+  fun setEventsEnabled(enabled: Boolean)
+  fun registerCustomEvents(events: Map<String, NativeEventDefinition>)
+  fun registerAliases(aliases: Map<String, String>)
+  fun track(eventName: String, params: Map<String?, Any?>?)
 
   companion object {
     /** The codec used by NativeFinvuManager. */
@@ -1979,6 +2112,111 @@ interface NativeFinvuManager {
                 reply.reply(NativeFinvuManagerPigeonUtils.wrapResult(null))
               }
             }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.finvu_flutter_sdk.NativeFinvuManager.addEventListener$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            val wrapped: List<Any?> = try {
+              api.addEventListener()
+              listOf(null)
+            } catch (exception: Throwable) {
+              NativeFinvuManagerPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.finvu_flutter_sdk.NativeFinvuManager.removeEventListener$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            val wrapped: List<Any?> = try {
+              api.removeEventListener()
+              listOf(null)
+            } catch (exception: Throwable) {
+              NativeFinvuManagerPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.finvu_flutter_sdk.NativeFinvuManager.setEventsEnabled$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val enabledArg = args[0] as Boolean
+            val wrapped: List<Any?> = try {
+              api.setEventsEnabled(enabledArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              NativeFinvuManagerPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.finvu_flutter_sdk.NativeFinvuManager.registerCustomEvents$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val eventsArg = args[0] as Map<String, NativeEventDefinition>
+            val wrapped: List<Any?> = try {
+              api.registerCustomEvents(eventsArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              NativeFinvuManagerPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.finvu_flutter_sdk.NativeFinvuManager.registerAliases$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val aliasesArg = args[0] as Map<String, String>
+            val wrapped: List<Any?> = try {
+              api.registerAliases(aliasesArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              NativeFinvuManagerPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.finvu_flutter_sdk.NativeFinvuManager.track$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val eventNameArg = args[0] as String
+            val paramsArg = args[1] as Map<String?, Any?>?
+            val wrapped: List<Any?> = try {
+              api.track(eventNameArg, paramsArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              NativeFinvuManagerPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
           }
         } else {
           channel.setMessageHandler(null)

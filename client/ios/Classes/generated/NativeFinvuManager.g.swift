@@ -55,6 +55,10 @@ private func wrapError(_ error: Any) -> [Any?] {
   ]
 }
 
+private func createConnectionError(withChannelName channelName: String) -> PigeonError {
+  return PigeonError(code: "channel-error", message: "Unable to establish connection on channel: '\(channelName)'.", details: "")
+}
+
 private func isNullish(_ value: Any?) -> Bool {
   return value is NSNull || value == nil
 }
@@ -1213,6 +1217,88 @@ struct NativeEntityInfo: Hashable {
   }
 }
 
+/// Generated class from Pigeon that represents data sent in messages.
+struct NativeFinvuEvent: Hashable {
+  var eventName: String
+  var eventCategory: String
+  var timestamp: String
+  var aaSdkVersion: String
+  var params: [String?: Any?]? = nil
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> NativeFinvuEvent? {
+    let eventName = pigeonVar_list[0] as! String
+    let eventCategory = pigeonVar_list[1] as! String
+    let timestamp = pigeonVar_list[2] as! String
+    let aaSdkVersion = pigeonVar_list[3] as! String
+    let params: [String?: Any?]? = nilOrValue(pigeonVar_list[4])
+
+    return NativeFinvuEvent(
+      eventName: eventName,
+      eventCategory: eventCategory,
+      timestamp: timestamp,
+      aaSdkVersion: aaSdkVersion,
+      params: params
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      eventName,
+      eventCategory,
+      timestamp,
+      aaSdkVersion,
+      params,
+    ]
+  }
+  static func == (lhs: NativeFinvuEvent, rhs: NativeFinvuEvent) -> Bool {
+    return deepEqualsNativeFinvuManager(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashNativeFinvuManager(value: toList(), hasher: &hasher)
+  }
+}
+
+/// Generated class from Pigeon that represents data sent in messages.
+struct NativeEventDefinition: Hashable {
+  var category: String
+  var stage: String? = nil
+  var fipId: String? = nil
+  var fips: [String?]? = nil
+  var fiTypes: [String?]? = nil
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> NativeEventDefinition? {
+    let category = pigeonVar_list[0] as! String
+    let stage: String? = nilOrValue(pigeonVar_list[1])
+    let fipId: String? = nilOrValue(pigeonVar_list[2])
+    let fips: [String?]? = nilOrValue(pigeonVar_list[3])
+    let fiTypes: [String?]? = nilOrValue(pigeonVar_list[4])
+
+    return NativeEventDefinition(
+      category: category,
+      stage: stage,
+      fipId: fipId,
+      fips: fips,
+      fiTypes: fiTypes
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      category,
+      stage,
+      fipId,
+      fips,
+      fiTypes,
+    ]
+  }
+  static func == (lhs: NativeEventDefinition, rhs: NativeEventDefinition) -> Bool {
+    return deepEqualsNativeFinvuManager(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashNativeFinvuManager(value: toList(), hasher: &hasher)
+  }
+}
+
 private class NativeFinvuManagerPigeonCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
@@ -1286,6 +1372,10 @@ private class NativeFinvuManagerPigeonCodecReader: FlutterStandardReader {
       return NativeFIPSearchResponse.fromList(self.readValue() as! [Any?])
     case 161:
       return NativeEntityInfo.fromList(self.readValue() as! [Any?])
+    case 162:
+      return NativeFinvuEvent.fromList(self.readValue() as! [Any?])
+    case 163:
+      return NativeEventDefinition.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
     }
@@ -1393,6 +1483,12 @@ private class NativeFinvuManagerPigeonCodecWriter: FlutterStandardWriter {
     } else if let value = value as? NativeEntityInfo {
       super.writeByte(161)
       super.writeValue(value.toList())
+    } else if let value = value as? NativeFinvuEvent {
+      super.writeByte(162)
+      super.writeValue(value.toList())
+    } else if let value = value as? NativeEventDefinition {
+      super.writeByte(163)
+      super.writeValue(value.toList())
     } else {
       super.writeValue(value)
     }
@@ -1414,6 +1510,39 @@ class NativeFinvuManagerPigeonCodec: FlutterStandardMessageCodec, @unchecked Sen
 }
 
 
+/// Generated protocol from Pigeon that represents Flutter messages that can be called from Swift.
+protocol NativeFinvuEventListenerProtocol {
+  func onEvent(event eventArg: NativeFinvuEvent, completion: @escaping (Result<Void, PigeonError>) -> Void)
+}
+class NativeFinvuEventListener: NativeFinvuEventListenerProtocol {
+  private let binaryMessenger: FlutterBinaryMessenger
+  private let messageChannelSuffix: String
+  init(binaryMessenger: FlutterBinaryMessenger, messageChannelSuffix: String = "") {
+    self.binaryMessenger = binaryMessenger
+    self.messageChannelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
+  }
+  var codec: NativeFinvuManagerPigeonCodec {
+    return NativeFinvuManagerPigeonCodec.shared
+  }
+  func onEvent(event eventArg: NativeFinvuEvent, completion: @escaping (Result<Void, PigeonError>) -> Void) {
+    let channelName: String = "dev.flutter.pigeon.finvu_flutter_sdk.NativeFinvuEventListener.onEvent\(messageChannelSuffix)"
+    let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
+    channel.sendMessage([eventArg] as [Any?]) { response in
+      guard let listResponse = response as? [Any?] else {
+        completion(.failure(createConnectionError(withChannelName: channelName)))
+        return
+      }
+      if listResponse.count > 1 {
+        let code: String = listResponse[0] as! String
+        let message: String? = nilOrValue(listResponse[1])
+        let details: String? = nilOrValue(listResponse[2])
+        completion(.failure(PigeonError(code: code, message: message, details: details)))
+      } else {
+        completion(.success(()))
+      }
+    }
+  }
+}
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
 protocol NativeFinvuManager {
   func initialize(config: NativeFinvuConfig) throws
@@ -1439,6 +1568,12 @@ protocol NativeFinvuManager {
   func getConsentHandleStatus(handleId: String, completion: @escaping (Result<NativeConsentHandleStatusResponse, Error>) -> Void)
   func getConsentRequestDetails(handleId: String, completion: @escaping (Result<NativeConsentRequestDetailInfo, Error>) -> Void)
   func logout(completion: @escaping (Result<Void, Error>) -> Void)
+  func addEventListener() throws
+  func removeEventListener() throws
+  func setEventsEnabled(enabled: Bool) throws
+  func registerCustomEvents(events: [String: NativeEventDefinition]) throws
+  func registerAliases(aliases: [String: String]) throws
+  func track(eventName: String, params: [String?: Any?]?) throws
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -1829,6 +1964,93 @@ class NativeFinvuManagerSetup {
       }
     } else {
       logoutChannel.setMessageHandler(nil)
+    }
+    let addEventListenerChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.finvu_flutter_sdk.NativeFinvuManager.addEventListener\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      addEventListenerChannel.setMessageHandler { _, reply in
+        do {
+          try api.addEventListener()
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      addEventListenerChannel.setMessageHandler(nil)
+    }
+    let removeEventListenerChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.finvu_flutter_sdk.NativeFinvuManager.removeEventListener\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      removeEventListenerChannel.setMessageHandler { _, reply in
+        do {
+          try api.removeEventListener()
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      removeEventListenerChannel.setMessageHandler(nil)
+    }
+    let setEventsEnabledChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.finvu_flutter_sdk.NativeFinvuManager.setEventsEnabled\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      setEventsEnabledChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let enabledArg = args[0] as! Bool
+        do {
+          try api.setEventsEnabled(enabled: enabledArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      setEventsEnabledChannel.setMessageHandler(nil)
+    }
+    let registerCustomEventsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.finvu_flutter_sdk.NativeFinvuManager.registerCustomEvents\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      registerCustomEventsChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let eventsArg = args[0] as! [String: NativeEventDefinition]
+        do {
+          try api.registerCustomEvents(events: eventsArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      registerCustomEventsChannel.setMessageHandler(nil)
+    }
+    let registerAliasesChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.finvu_flutter_sdk.NativeFinvuManager.registerAliases\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      registerAliasesChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let aliasesArg = args[0] as! [String: String]
+        do {
+          try api.registerAliases(aliases: aliasesArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      registerAliasesChannel.setMessageHandler(nil)
+    }
+    let trackChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.finvu_flutter_sdk.NativeFinvuManager.track\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      trackChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let eventNameArg = args[0] as! String
+        let paramsArg: [String?: Any?]? = nilOrValue(args[1])
+        do {
+          try api.track(eventName: eventNameArg, params: paramsArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      trackChannel.setMessageHandler(nil)
     }
   }
 }

@@ -19,6 +19,11 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
     
     let formatter = ISO8601DateFormatter();
     
+    // Event listener properties
+    private var eventListener: FinvuEventListener? = nil
+    private var nativeEventListener: NativeFinvuEventListener? = nil
+    private var binaryMessenger: FlutterBinaryMessenger? = nil
+    
     public override init() {
         super.init()
         formatter.formatOptions =  [.withInternetDateTime, .withFractionalSeconds]
@@ -46,6 +51,12 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
         let messenger : FlutterBinaryMessenger = registrar.messenger()
         let api : NativeFinvuManager & NSObjectProtocol = FinvuFlutterSdkPlugin.init()
         NativeFinvuManagerSetup.setUp(binaryMessenger: messenger, api: api);
+        
+        // Store binary messenger and create native event listener
+        if let plugin = api as? FinvuFlutterSdkPlugin {
+            plugin.binaryMessenger = messenger
+            plugin.nativeEventListener = NativeFinvuEventListener(binaryMessenger: messenger)
+        }
     }
     
     func initialize(config: NativeFinvuConfig) throws {
@@ -480,6 +491,113 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
         } else {
             nil
         }
+    }
+    
+    //Event Tracking Methods
+    
+    func addEventListener() throws {
+        if eventListener == nil && nativeEventListener != nil {
+            class FlutterEventListenerWrapper: NSObject, FinvuEventListener {
+                weak var plugin: FinvuFlutterSdkPlugin?
+                
+                init(plugin: FinvuFlutterSdkPlugin) {
+                    self.plugin = plugin
+                    super.init()
+                }
+                
+                func onEvent(_ event: FinvuEvent) {
+                    guard let plugin = plugin, let nativeEventListener = plugin.nativeEventListener else { return }
+                    
+                    var paramsMap: [String?: Any?]? = nil
+                    if !event.params.isEmpty {
+                        paramsMap = [:]
+                        for (key, value) in event.params {
+                            // Convert arrays to string arrays if needed
+                            if let arrayValue = value as? [Any] {
+                                paramsMap?[key] = arrayValue.map { "\($0)" }
+                            } else {
+                                paramsMap?[key] = value
+                            }
+                        }
+                    }
+                    
+                    let nativeEvent = NativeFinvuEvent(
+                        eventName: event.eventName,
+                        eventCategory: event.eventCategory,
+                        timestamp: event.timestamp,
+                        aaSdkVersion: event.aaSdkVersion,
+                        params: paramsMap
+                    )
+                    
+                    // Forward event to Flutter on main thread
+                    DispatchQueue.main.async {
+                        nativeEventListener.onEvent(event: nativeEvent) { result in
+                            if case .failure(let error) = result {
+                                print("Error forwarding event to Flutter: \(error.localizedDescription)")
+                            }
+                        }
+                    }
+                }
+            }
+            
+            eventListener = FlutterEventListenerWrapper(plugin: self)
+            FinvuManager.shared.addEventListener(eventListener!)
+        }
+    }
+    
+    func removeEventListener() throws {
+        if let listener = eventListener {
+            FinvuManager.shared.removeEventListener(listener)
+            eventListener = nil
+        }
+    }
+    
+    func setEventsEnabled(enabled: Bool) throws {
+        FinvuManager.shared.setEventsEnabled(enabled)
+    }
+    
+    func registerCustomEvents(events: [String: NativeEventDefinition]) throws {
+        // Convert NativeEventDefinition to iOS SDK EventDefinition
+        // iOS SDK EventDefinition uses [String] for fips and fiTypes (not Set)
+        let customEvents = events.mapValues { nativeDef in
+            // Filter out nil values and convert to Array
+            let fips = nativeDef.fips?.compactMap { $0 } ?? []
+            let fiTypes = nativeDef.fiTypes?.compactMap { $0 } ?? []
+            
+            // EventDefinition is a class (not in FinvuSDK namespace)
+            return EventDefinition(
+                category: nativeDef.category,
+                stage: nativeDef.stage,
+                fipId: nativeDef.fipId,
+                fips: fips,
+                fiTypes: fiTypes
+            )
+        }
+        
+        // registerCustomEvents is on FinvuEventTracker.shared (internal method, but accessible from same module)
+        FinvuEventTracker.shared.registerCustomEvents(customEvents)
+    }
+    
+    func registerAliases(aliases: [String: String]) throws {
+        // registerAliases is on FinvuEventTracker.shared
+        FinvuEventTracker.shared.registerAliases(aliases)
+    }
+    
+    func track(eventName: String, params: [String?: Any?]?) throws {
+        // Convert nullable string keys to non-nullable
+        // iOS SDK track method signature: track(_ eventName: String, params: [String: Any] = [:])
+        var paramsMap: [String: Any] = [:]
+        if let params = params {
+            for (key, value) in params {
+                // Convert Any? to Any (unwrap optionals where appropriate)
+                if let unwrappedValue = value {
+                    paramsMap[key ?? ""] = unwrappedValue
+                }
+            }
+        }
+        
+        // track is on FinvuEventTracker.shared
+        FinvuEventTracker.shared.track(eventName, params: paramsMap)
     }
 }
 
