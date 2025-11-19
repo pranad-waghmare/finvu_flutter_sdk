@@ -1,12 +1,14 @@
 import 'package:pigeon/pigeon.dart';
 
-@ConfigurePigeon(PigeonOptions(
-  dartOut: 'lib/generated/native_finvu_manager.g.dart',
-  kotlinOut:
-      'android/src/main/kotlin/com/finvu/finvu_flutter_sdk/generated/NativeFinvuManager.g.kt',
-  swiftOut: 'ios/Classes/generated/NativeFinvuManager.g.swift',
-  kotlinOptions: KotlinOptions(errorClassName: 'NativeFinvuError'),
-))
+@ConfigurePigeon(
+  PigeonOptions(
+    dartOut: 'lib/generated/native_finvu_manager.g.dart',
+    kotlinOut:
+        'android/src/main/kotlin/com/finvu/finvu_flutter_sdk/generated/NativeFinvuManager.g.kt',
+    swiftOut: 'ios/Classes/generated/NativeFinvuManager.g.swift',
+    kotlinOptions: KotlinOptions(errorClassName: 'NativeFinvuError'),
+  ),
+)
 enum FinvuEnv {
   uat,
   production,
@@ -390,6 +392,43 @@ class NativeEntityInfo {
   String? entityLogoWithNameUri;
 }
 
+class NativeFinvuEvent {
+  NativeFinvuEvent({
+    required this.eventName,
+    required this.eventCategory,
+    required this.timestamp,
+    required this.aaSdkVersion,
+    this.params,
+  });
+
+  String eventName;
+  String eventCategory;
+  String timestamp;
+  String aaSdkVersion;
+  Map<String?, Object?>? params;
+}
+
+class NativeEventDefinition {
+  NativeEventDefinition({
+    required this.category,
+    this.stage,
+    this.fipId,
+    this.fips,
+    this.fiTypes,
+  });
+
+  String category;
+  String? stage;
+  String? fipId;
+  List<String?>? fips;
+  List<String?>? fiTypes;
+}
+
+@FlutterApi()
+abstract class NativeFinvuEventListener {
+  void onEvent(NativeFinvuEvent event);
+}
+
 @HostApi()
 abstract class NativeFinvuManager {
   void initialize(NativeFinvuConfig config);
@@ -486,4 +525,16 @@ abstract class NativeFinvuManager {
 
   @async
   void logout();
+
+  void addEventListener();
+
+  void removeEventListener();
+
+  void setEventsEnabled(bool enabled);
+
+  void registerCustomEvents(Map<String, NativeEventDefinition> events);
+
+  void registerAliases(Map<String, String> aliases);
+
+  void track(String eventName, Map<String?, Object?>? params);
 }
