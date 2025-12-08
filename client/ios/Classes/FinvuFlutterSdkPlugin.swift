@@ -8,8 +8,10 @@ extension FlutterError: Error {}
 public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager {
     func loginWithUsernameOrMobileNumberAndConsentHandle(username: String?, mobileNumber: String?, consentHandleId: String, completion: @escaping (Result<NativeLoginOtpReference, any Error>) -> Void) {
         FinvuManager.shared.loginWith(username: username, mobileNumber: mobileNumber, consentHandleId: consentHandleId) { loginReference, error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
             } else {
                 completion(.success(NativeLoginOtpReference(reference: loginReference!.reference, snaToken: loginReference!.snaToken ?? "", authType: loginReference!.authType ?? "")))
             }
@@ -83,8 +85,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
     
     func connect(completion: @escaping (Result<Void, Error>) -> Void) {
         FinvuManager.shared.connect { error in
-            if (error != nil) {
-                completion(.failure((FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil))))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
             } else {
                 completion(.success(()))
             }
@@ -105,8 +109,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
     
     func verifyLoginOtp(otp: String, otpReference: String, completion: @escaping (Result<NativeHandleInfo, any Error>) -> Void) {
         FinvuManager.shared.verifyLoginOtp(otp: otp, otpReference: otpReference) { handleInfo, error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
             } else {
                 completion(.success(NativeHandleInfo(userId: handleInfo!.userId)))
             }
@@ -119,8 +125,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
         }
         
         FinvuManager.shared.discoverAccounts(fipId: fipId, fiTypes: fiTypes, identifiers: identifiers) { response, error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
                 return
             }
             
@@ -137,8 +145,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
         }
             
         FinvuManager.shared.discoverAccounts(fipId: fipId, fiTypes: fiTypes, identifiers: identifiers) { response, error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
                 return
             }
             
@@ -161,8 +171,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
         }
         
         FinvuManager.shared.linkAccounts(fipDetails: fipDetails, accounts: accounts) { requestReference, error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
                 return
             }
             
@@ -172,8 +184,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
     
     func confirmAccountLinking(requestReference: NativeAccountLinkingRequestReference, otp: String, completion: @escaping (Result<NativeConfirmAccountLinkingInfo, Error>) -> Void) {
         FinvuManager.shared.confirmAccountLinking(linkingReference: AccountLinkingRequestReference(referenceNumber: requestReference.referenceNumber), otp: otp) { confirmAccountLinkingInfo, error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
                 return
             }
             
@@ -187,8 +201,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
     
     func fetchLinkedAccounts(completion: @escaping (Result<NativeLinkedAccountsResponse, Error>) -> Void) {
         FinvuManager.shared.fetchLinkedAccounts { response, error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
                 return
             }
             
@@ -214,8 +230,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
     
     func initiateMobileVerification(mobileNumber: String, completion: @escaping (Result<Void, Error>) -> Void) {
         FinvuManager.shared.initiateMobileVerification(mobileNumber: mobileNumber) { error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
                 return
             }
             
@@ -225,8 +243,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
     
     func completeMobileVerification(mobileNumber: String, otp: String, completion: @escaping (Result<Void, Error>) -> Void) {
         FinvuManager.shared.completeMobileVerification(mobileNumber: mobileNumber, otp: otp) { error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
                 return
             }
             
@@ -293,8 +313,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
         })
         
         FinvuManager.shared.approveAccountConsentRequest(consentDetail: consentDetail, linkedAccounts: linkedAccountsInfo) { response, error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
                 return
             }
             
@@ -347,8 +369,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
         )
         
         FinvuManager.shared.denyAccountConsentRequest(consentDetail: consentDetail) { response, error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
                 return
             }
             
@@ -368,8 +392,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
         let _fipDetails: FIPReference? = fipDetails != nil ? FIPReference(fipId: fipDetails!.fipId, fipName: fipDetails!.fipName) : nil
 
         FinvuManager.shared.revokeConsent(consentId: consentId, accountAggregator: aa, fipDetails: _fipDetails) { error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
                 return
             }
             
@@ -379,8 +405,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
     
     func getConsentRequestDetails(handleId: String, completion: @escaping (Result<NativeConsentRequestDetailInfo, any Error>) -> Void) {
         FinvuManager.shared.getConsentRequestDetails(consentHandleId: handleId) { response, error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
                 return
             }
             
@@ -417,8 +445,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
     
     func getConsentHandleStatus(handleId: String, completion: @escaping (Result<NativeConsentHandleStatusResponse, any Error>) -> Void) {
         FinvuManager.shared.getConsentHandleStatus(handleId: handleId) { response, error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
                 return
             }
             
@@ -429,8 +459,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
 
     func fipsAllFIPOptions(completion: @escaping (Result<NativeFIPSearchResponse, any Error>) -> Void) {
         FinvuManager.shared.fipsAllFIPOptions { fipSearchResponse, error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
             } else {
                 let fipInfoList = fipSearchResponse!.searchOptions.map { fipInfo in
                     NativeFIPInfo(fipId: fipInfo.fipId, productName: fipInfo.productName, fipFitypes: fipInfo.fipFitypes, productDesc: fipInfo.productDesc, productIconUri: fipInfo.productIconUri, enabled: fipInfo.enabled)
@@ -442,8 +474,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
     
     func fetchFIPDetails(fipId: String, completion: @escaping (Result<NativeFIPDetails, any Error>) -> Void) {
         FinvuManager.shared.fetchFIPDetails(fipId: fipId) { fipDetails, error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
                 return
             }
             
@@ -459,8 +493,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
 
     func getEntityInfo(entityId: String, entityType: String, completion: @escaping (Result<NativeEntityInfo, Error>) -> Void) {
         FinvuManager.shared.getEntityInfo(entityId: entityId, entityType: entityType) { response, error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
                 return
             }
             
@@ -476,8 +512,10 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
     
     func logout(completion: @escaping (Result<Void, Error>) -> Void) {
         FinvuManager.shared.logout { error in
-            if (error != nil) {
-                completion(.failure(FlutterError(code: "\(error!.code)", message: error?.localizedDescription, details: nil)))
+            if let error = error {
+                let errorCode = error.errorCode ?? ""
+                let errorMessage = error.errorMessage ?? error.localizedDescription
+                completion(.failure(FlutterError(code: errorCode, message: errorMessage, details: nil)))
                 return
             }
             
