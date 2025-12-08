@@ -12,7 +12,7 @@ import Foundation
 #endif
 
 /// Error class for passing custom error details to Dart side.
-final class PigeonError: Error {
+final class NativeFinvuError: Error {
   let code: String
   let message: String?
   let details: Sendable?
@@ -25,7 +25,7 @@ final class PigeonError: Error {
 
   var localizedDescription: String {
     return
-      "PigeonError(code: \(code), message: \(message ?? "<nil>"), details: \(details ?? "<nil>")"
+      "NativeFinvuError(code: \(code), message: \(message ?? "<nil>"), details: \(details ?? "<nil>")"
   }
 }
 
@@ -34,7 +34,7 @@ private func wrapResult(_ result: Any?) -> [Any?] {
 }
 
 private func wrapError(_ error: Any) -> [Any?] {
-  if let pigeonError = error as? PigeonError {
+  if let pigeonError = error as? NativeFinvuError {
     return [
       pigeonError.code,
       pigeonError.message,
@@ -55,8 +55,8 @@ private func wrapError(_ error: Any) -> [Any?] {
   ]
 }
 
-private func createConnectionError(withChannelName channelName: String) -> PigeonError {
-  return PigeonError(code: "channel-error", message: "Unable to establish connection on channel: '\(channelName)'.", details: "")
+private func createConnectionError(withChannelName channelName: String) -> NativeFinvuError {
+  return NativeFinvuError(code: "channel-error", message: "Unable to establish connection on channel: '\(channelName)'.", details: "")
 }
 
 private func isNullish(_ value: Any?) -> Bool {
@@ -1512,7 +1512,7 @@ class NativeFinvuManagerPigeonCodec: FlutterStandardMessageCodec, @unchecked Sen
 
 /// Generated protocol from Pigeon that represents Flutter messages that can be called from Swift.
 protocol NativeFinvuEventListenerProtocol {
-  func onEvent(event eventArg: NativeFinvuEvent, completion: @escaping (Result<Void, PigeonError>) -> Void)
+  func onEvent(event eventArg: NativeFinvuEvent, completion: @escaping (Result<Void, NativeFinvuError>) -> Void)
 }
 class NativeFinvuEventListener: NativeFinvuEventListenerProtocol {
   private let binaryMessenger: FlutterBinaryMessenger
@@ -1524,7 +1524,7 @@ class NativeFinvuEventListener: NativeFinvuEventListenerProtocol {
   var codec: NativeFinvuManagerPigeonCodec {
     return NativeFinvuManagerPigeonCodec.shared
   }
-  func onEvent(event eventArg: NativeFinvuEvent, completion: @escaping (Result<Void, PigeonError>) -> Void) {
+  func onEvent(event eventArg: NativeFinvuEvent, completion: @escaping (Result<Void, NativeFinvuError>) -> Void) {
     let channelName: String = "dev.flutter.pigeon.finvu_flutter_sdk.NativeFinvuEventListener.onEvent\(messageChannelSuffix)"
     let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
     channel.sendMessage([eventArg] as [Any?]) { response in
@@ -1536,7 +1536,7 @@ class NativeFinvuEventListener: NativeFinvuEventListenerProtocol {
         let code: String = listResponse[0] as! String
         let message: String? = nilOrValue(listResponse[1])
         let details: String? = nilOrValue(listResponse[2])
-        completion(.failure(PigeonError(code: code, message: message, details: details)))
+        completion(.failure(NativeFinvuError(code: code, message: message, details: details)))
       } else {
         completion(.success(()))
       }

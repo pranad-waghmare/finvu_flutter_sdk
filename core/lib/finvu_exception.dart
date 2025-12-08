@@ -1,9 +1,14 @@
 class FinvuException implements Exception {
-  final int code;
+  final String code;
   final String? message;
   FinvuException(this.code, this.message);
 
   static FinvuException from(e) {
-    return FinvuException(int.parse(e.code), e.message);
+    return FinvuException(e.code ?? '', e.message);
+  }
+
+  @override
+  String toString() {
+    return 'FinvuException(code: $code, message: $message)';
   }
 }
