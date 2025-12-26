@@ -17,7 +17,7 @@ dependencies:
     # path: ../core
     # for remote development uncomment the git line and comment the path line
     git:
-      url: https://github.com/Cookiejar-technologies/finvu_flutter_sdk_core.git
+      url: https://github.com/Cookiejar-technologies/finvu_flutter_sdk.git
       path: core
       ref: 1.0.7
 
