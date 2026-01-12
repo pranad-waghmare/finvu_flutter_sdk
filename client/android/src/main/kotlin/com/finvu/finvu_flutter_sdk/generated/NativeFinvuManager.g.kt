@@ -184,20 +184,23 @@ data class NativeHandleInfo (
 /** Generated class from Pigeon that represents data sent in messages. */
 data class NativeFIPDetails (
   val fipId: String,
-  val typeIdentifiers: List<NativeFIPFiTypeIdentifier?>
+  val typeIdentifiers: List<NativeFIPFiTypeIdentifier?>,
+  val linkingOtpLength: Long? = null
 )
  {
   companion object {
     fun fromList(pigeonVar_list: List<Any?>): NativeFIPDetails {
       val fipId = pigeonVar_list[0] as String
       val typeIdentifiers = pigeonVar_list[1] as List<NativeFIPFiTypeIdentifier?>
-      return NativeFIPDetails(fipId, typeIdentifiers)
+      val linkingOtpLength = pigeonVar_list[2] as Long?
+      return NativeFIPDetails(fipId, typeIdentifiers, linkingOtpLength)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
       fipId,
       typeIdentifiers,
+      linkingOtpLength,
     )
   }
   override fun equals(other: Any?): Boolean {

@@ -42,9 +42,11 @@ class NativeFIPDetails {
   NativeFIPDetails({
     required this.fipId,
     required this.typeIdentifiers,
+    this.linkingOtpLength,
   });
   String fipId;
   List<NativeFIPFiTypeIdentifier?> typeIdentifiers;
+  int? linkingOtpLength;
 }
 
 class NativeFIPFiTypeIdentifier {

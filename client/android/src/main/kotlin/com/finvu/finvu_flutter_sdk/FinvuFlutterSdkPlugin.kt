@@ -347,7 +347,7 @@ class FinvuFlutterSdkPlugin: FlutterPlugin, ActivityAware, NativeFinvuManager {
         finvuIdentifiers
       )
     }
-    return FipDetails(fipDetails.fipId, finvuTypeIdentifiers)
+    return FipDetails(fipDetails.fipId, finvuTypeIdentifiers, fipDetails.linkingOtpLength)
   }
 
   override fun confirmAccountLinking(

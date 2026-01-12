@@ -181,16 +181,20 @@ class NativeFIPDetails {
   NativeFIPDetails({
     required this.fipId,
     required this.typeIdentifiers,
+    this.linkingOtpLength,
   });
 
   String fipId;
 
   List<NativeFIPFiTypeIdentifier?> typeIdentifiers;
 
+  int? linkingOtpLength;
+
   List<Object?> _toList() {
     return <Object?>[
       fipId,
       typeIdentifiers,
+      linkingOtpLength,
     ];
   }
 
@@ -202,6 +206,7 @@ class NativeFIPDetails {
     return NativeFIPDetails(
       fipId: result[0]! as String,
       typeIdentifiers: (result[1] as List<Object?>?)!.cast<NativeFIPFiTypeIdentifier?>(),
+      linkingOtpLength: result[2] as int?,
     );
   }
 

@@ -160,11 +160,12 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
     }
 
     func linkAccounts(fipDetails: NativeFIPDetails, accounts: [NativeDiscoveredAccountInfo], completion: @escaping (Result<NativeAccountLinkingRequestReference, Error>) -> Void) {
+        let linkingOtpLength = fipDetails.linkingOtpLength != nil ? NSNumber(value: fipDetails.linkingOtpLength!) : nil
         let fipDetails = FIPDetails(fipId: fipDetails.fipId, typeIdenifiers: fipDetails.typeIdentifiers.map({ nativeFIPFiTypeIdentifier in
             FIPFiTypeIdentifier(fiType: nativeFIPFiTypeIdentifier!.fiType, identifiers: nativeFIPFiTypeIdentifier!.identifiers.map({ nativeTypeIdentifier in
                 TypeIdentifier(category: nativeTypeIdentifier!.category, type: nativeTypeIdentifier!.type)
             }))
-        }))
+        }), linkingOtpLength: linkingOtpLength)
         
         let accounts = accounts.map { account in
             DiscoveredAccountInfo(accountType: account.accountType, accountReferenceNumber: account.accountReferenceNumber, maskedAccountNumber: account.maskedAccountNumber, fiType: account.fiType)
@@ -487,7 +488,8 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
                 }
                 return NativeFIPFiTypeIdentifier(fiType: typeIdentifier.fiType, identifiers: identifiers)
             }
-            completion(.success(NativeFIPDetails(fipId: fipDetails!.fipId, typeIdentifiers: typeIdentifiers)))
+            let linkingOtpLength = fipDetails!.linkingOtpLength?.intValue
+            completion(.success(NativeFIPDetails(fipId: fipDetails!.fipId, typeIdentifiers: typeIdentifiers, linkingOtpLength: linkingOtpLength)))
         }
     }
 

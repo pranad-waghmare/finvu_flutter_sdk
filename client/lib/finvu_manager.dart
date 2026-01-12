@@ -326,6 +326,7 @@ class FinvuManager {
                   ),
                 )
                 .toList(),
+            linkingOtpLength: fipDetails.linkingOtpLength,
           ),
         )
         .catchError(
@@ -373,6 +374,7 @@ class FinvuManager {
             ),
           )
           .toList(),
+      linkingOtpLength: fipDetails.linkingOtpLength,
     );
 
     final nativeAccounts = accounts
