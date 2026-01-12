@@ -347,7 +347,7 @@ class FinvuFlutterSdkPlugin: FlutterPlugin, ActivityAware, NativeFinvuManager {
         finvuIdentifiers
       )
     }
-    return FipDetails(fipDetails.fipId, finvuTypeIdentifiers, fipDetails.linkingOtpLength)
+    return FipDetails(fipDetails.fipId, finvuTypeIdentifiers, fipDetails.linkingOtpLength?.toInt())
   }
 
   override fun confirmAccountLinking(
@@ -476,7 +476,7 @@ class FinvuFlutterSdkPlugin: FlutterPlugin, ActivityAware, NativeFinvuManager {
           identifiers
         )
       }
-      val fipDetails = NativeFIPDetails(response.fipId, typeIdentifiers)
+      val fipDetails = NativeFIPDetails(response.fipId, typeIdentifiers, response.linkingOtpLength?.toLong())
       callback(Result.success(fipDetails))
     }
   }
