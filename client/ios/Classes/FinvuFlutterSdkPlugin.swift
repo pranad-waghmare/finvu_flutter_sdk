@@ -488,7 +488,7 @@ public class FinvuFlutterSdkPlugin: NSObject, FlutterPlugin, NativeFinvuManager 
                 }
                 return NativeFIPFiTypeIdentifier(fiType: typeIdentifier.fiType, identifiers: identifiers)
             }
-            let linkingOtpLength = fipDetails!.linkingOtpLength?.intValue
+            let linkingOtpLength = fipDetails!.linkingOtpLength?.intValue.map { Int64($0) }
             completion(.success(NativeFIPDetails(fipId: fipDetails!.fipId, typeIdentifiers: typeIdentifiers, linkingOtpLength: linkingOtpLength)))
         }
     }
