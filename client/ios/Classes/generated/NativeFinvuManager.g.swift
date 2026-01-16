@@ -224,22 +224,26 @@ struct NativeHandleInfo: Hashable {
 struct NativeFIPDetails: Hashable {
   var fipId: String
   var typeIdentifiers: [NativeFIPFiTypeIdentifier?]
+  var linkingOtpLength: Int64? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
   static func fromList(_ pigeonVar_list: [Any?]) -> NativeFIPDetails? {
     let fipId = pigeonVar_list[0] as! String
     let typeIdentifiers = pigeonVar_list[1] as! [NativeFIPFiTypeIdentifier?]
+    let linkingOtpLength: Int64? = nilOrValue(pigeonVar_list[2])
 
     return NativeFIPDetails(
       fipId: fipId,
-      typeIdentifiers: typeIdentifiers
+      typeIdentifiers: typeIdentifiers,
+      linkingOtpLength: linkingOtpLength
     )
   }
   func toList() -> [Any?] {
     return [
       fipId,
       typeIdentifiers,
+      linkingOtpLength,
     ]
   }
   static func == (lhs: NativeFIPDetails, rhs: NativeFIPDetails) -> Bool {

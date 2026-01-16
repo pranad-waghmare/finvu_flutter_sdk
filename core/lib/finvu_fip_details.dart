@@ -2,9 +2,11 @@ class FinvuFIPDetails {
   FinvuFIPDetails({
     required this.fipId,
     required this.typeIdentifiers,
+    this.linkingOtpLength,
   });
   String fipId;
   List<FinvuFIPFiTypeIdentifier> typeIdentifiers;
+  int? linkingOtpLength;
 }
 
 class FinvuFIPFiTypeIdentifier {
